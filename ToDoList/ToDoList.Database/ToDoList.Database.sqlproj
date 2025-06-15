@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.Data.Tools.Schema.Sql.SqlProjectSdk">
+  <PropertyGroup>
+    <Name>ToDoList.Database</Name>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider</DSP>
+    <ModelCollation>1033, CI</ModelCollation>
+    <RootPath>.</RootPath>
+    <TargetDatabaseName>ToDoDb</TargetDatabaseName>
+    <TargetPlatform>SqlServer2019</TargetPlatform>
+  </PropertyGroup>
+<ItemGroup>
+  <Build Include="Tables\TodoItems.sql" />
+</ItemGroup>
+</Project>
