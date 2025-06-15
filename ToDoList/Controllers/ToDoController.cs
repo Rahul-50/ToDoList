@@ -21,27 +21,45 @@ namespace ToDoList.Controllers
             return _configuration.GetConnectionString("DefaultConnection");
         }
 
-        public IActionResult Index()
+       public IActionResult Index()
+{
+    List<TodoItem> items = new();
+    int completed = 0;
+    int pending = 0;
+
+    string connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+    using (SqlConnection conn = new(connectionString))
+    {
+        conn.Open();
+        string sql = "SELECT * FROM TodoItems";
+        using SqlCommand cmd = new(sql, conn);
+        SqlDataReader reader = cmd.ExecuteReader();
+
+        while (reader.Read())
         {
-            List<TodoItem> items = new();
-            using SqlConnection conn = new(GetConnectionString());
-            conn.Open();
-            string sql = "SELECT * FROM TodoItems";
-            using SqlCommand cmd = new(sql, conn);
-            SqlDataReader reader = cmd.ExecuteReader();
-
-            while (reader.Read())
+            bool isCompleted = (bool)reader["IsCompleted"];
+            items.Add(new TodoItem
             {
-                items.Add(new TodoItem
-                {
-                    Id = (int)reader["Id"],
-                    Title = reader["Title"].ToString(),
-                    IsCompleted = (bool)reader["IsCompleted"]
-                });
-            }
+                Id = (int)reader["Id"],
+                Title = reader["Title"].ToString(),
+                IsCompleted = isCompleted
+            });
 
-            return View(items);
+            if (isCompleted)
+                completed++;
+            else
+                pending++;
         }
+    }
+
+    ViewBag.Completed = completed;
+    ViewBag.Pending = pending;
+
+    return View(items);
+}
+
+
         [HttpGet]
         public IActionResult Create()
         {
@@ -112,5 +130,59 @@ namespace ToDoList.Controllers
 
             return RedirectToAction("Index");
         }
+
+        public IActionResult Stats()
+        {
+            int total = 0, completed = 0, pending = 0;
+            string connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using SqlConnection conn = new(connectionString);
+            conn.Open();
+            string sql = "SELECT COUNT(*) FROM TodoItems; SELECT COUNT(*) FROM TodoItems WHERE IsCompleted = 1; SELECT COUNT(*) FROM TodoItems WHERE IsCompleted = 0;";
+            using SqlCommand cmd = new(sql, conn);
+            using SqlDataReader reader = cmd.ExecuteReader();
+
+            if (reader.Read()) total = reader.GetInt32(0);
+            reader.NextResult();
+            if (reader.Read()) completed = reader.GetInt32(0);
+            reader.NextResult();
+            if (reader.Read()) pending = reader.GetInt32(0);
+
+            ViewBag.Total = total;
+            ViewBag.Completed = completed;
+            ViewBag.Pending = pending;
+
+            return View();
+        }
+        public IActionResult TaskChart()
+        {
+            int completed = 0;
+            int pending = 0;
+
+            string connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (SqlConnection conn = new(connectionString))
+            {
+                conn.Open();
+                string sql = "SELECT IsCompleted FROM TodoItems";
+                using SqlCommand cmd = new(sql, conn);
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    bool isCompleted = (bool)reader["IsCompleted"];
+                    if (isCompleted)
+                        completed++;
+                    else
+                        pending++;
+                }
+            }
+
+            ViewBag.Completed = completed;
+            ViewBag.Pending = pending;
+
+            return View();
+        }
+
     }
 }

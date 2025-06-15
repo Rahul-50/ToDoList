@@ -1,0 +1,33 @@
+﻿@{
+    ViewData["Title"] = "Task Stats";
+}
+
+<div class="container mt-5">
+    <h2 class="text-info mb-4"><i class="fa fa-chart-pie"></i> Task Statistics</h2>
+    <div class="row text-center">
+        <div class="col-md-4">
+            <div class="card shadow bg-light">
+                <div class="card-body">
+                    <h4 class="text-primary">Total Tasks</h4>
+                    <h1>@ViewBag.Total</h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mt-3 mt-md-0">
+            <div class="card shadow bg-light">
+                <div class="card-body">
+                    <h4 class="text-success">Completed</h4>
+                    <h1>@ViewBag.Completed</h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mt-3 mt-md-0">
+            <div class="card shadow bg-light">
+                <div class="card-body">
+                    <h4 class="text-danger">Pending</h4>
+                    <h1>@ViewBag.Pending</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

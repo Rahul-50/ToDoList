@@ -27,3 +27,20 @@ body {
 .border-left-warning {
     border-left: 5px solid #ffc107 !important;
 }
+.navbar .nav-link.text-warning {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}

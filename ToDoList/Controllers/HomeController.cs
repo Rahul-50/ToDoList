@@ -13,7 +13,10 @@ namespace ToDoList.Controllers
         {
             _logger = logger;
         }
-
+        public IActionResult WhatsNew()
+        {
+            return View();
+        }
         public IActionResult Index()
         {
             return View();
