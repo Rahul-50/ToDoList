@@ -1,15 +1,12 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Configuration;
-using ToDoList.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ? Register only SQL Server provider for TodoContext
-builder.Services.AddDbContext<TodoContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// ✅ Register only SQL Server provider for TodoContext
+//builder.Services.AddDbContext<TodoContext>(options =>
+//    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddControllersWithViews();
 

@@ -1,70 +1,116 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
-using ToDoList.Data;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+//using System.Data.SqlClient;
+using System.Collections.Generic;
 using ToDoList.Models;
 
-public class TodoController : Controller
+namespace ToDoList.Controllers
 {
-    private readonly TodoContext _context;
-
-    public TodoController(TodoContext context)
+    public class TodoController : Controller
     {
-        _context = context;
-    }
+        private readonly IConfiguration _configuration;
 
-    public async Task<IActionResult> Index()
-    {
-        return View(await _context.TodoItems.ToListAsync());
-    }
-
-    public IActionResult Create()
-    {
-        return View();
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> Create(TodoItem item)
-    {
-        if (ModelState.IsValid)
+        public TodoController(IConfiguration configuration)
         {
-            _context.Add(item);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            _configuration = configuration;
         }
-        return View(item);
-    }
 
-    public async Task<IActionResult> Edit(int id)
-    {
-        var item = await _context.TodoItems.FindAsync(id);
-        return View(item);
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> Edit(TodoItem item)
-    {
-        if (ModelState.IsValid)
+        private string GetConnectionString()
         {
-            _context.Update(item);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return _configuration.GetConnectionString("DefaultConnection");
         }
-        return View(item);
-    }
 
-    public async Task<IActionResult> Delete(int id)
-    {
-        var item = await _context.TodoItems.FindAsync(id);
-        return View(item);
-    }
+        public IActionResult Index()
+        {
+            List<TodoItem> items = new();
+            using SqlConnection conn = new(GetConnectionString());
+            conn.Open();
+            string sql = "SELECT * FROM TodoItems";
+            using SqlCommand cmd = new(sql, conn);
+            SqlDataReader reader = cmd.ExecuteReader();
 
-    [HttpPost, ActionName("Delete")]
-    public async Task<IActionResult> DeleteConfirmed(int id)
-    {
-        var item = await _context.TodoItems.FindAsync(id);
-        _context.TodoItems.Remove(item);
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
+            while (reader.Read())
+            {
+                items.Add(new TodoItem
+                {
+                    Id = (int)reader["Id"],
+                    Title = reader["Title"].ToString(),
+                    IsCompleted = (bool)reader["IsCompleted"]
+                });
+            }
+
+            return View(items);
+        }
+        [HttpGet]
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult Create(string title)
+        {
+            using SqlConnection conn = new(GetConnectionString());
+            conn.Open();
+            string sql = "INSERT INTO TodoItems (Title, IsCompleted) VALUES (@title, 0)";
+            using SqlCommand cmd = new(sql, conn);
+            cmd.Parameters.AddWithValue("@title", title);
+            cmd.ExecuteNonQuery();
+
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult Edit(int id)
+        {
+            TodoItem item = null;
+
+            using SqlConnection conn = new(GetConnectionString());
+            conn.Open();
+            string sql = "SELECT * FROM TodoItems WHERE Id = @id";
+            using SqlCommand cmd = new(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            SqlDataReader reader = cmd.ExecuteReader();
+
+            if (reader.Read())
+            {
+                item = new TodoItem
+                {
+                    Id = (int)reader["Id"],
+                    Title = reader["Title"].ToString(),
+                    IsCompleted = (bool)reader["IsCompleted"]
+                };
+            }
+
+            if (item == null) return NotFound();
+            return View(item);
+        }
+
+        [HttpPost]
+        public IActionResult Update(TodoItem item)
+        {
+            using SqlConnection conn = new(GetConnectionString());
+            conn.Open();
+            string sql = "UPDATE TodoItems SET Title = @title, IsCompleted = @isCompleted WHERE Id = @id";
+            using SqlCommand cmd = new(sql, conn);
+            cmd.Parameters.AddWithValue("@title", item.Title);
+            cmd.Parameters.AddWithValue("@isCompleted", item.IsCompleted);
+            cmd.Parameters.AddWithValue("@id", item.Id);
+            cmd.ExecuteNonQuery();
+
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult Delete(int id)
+        {
+            using SqlConnection conn = new(GetConnectionString());
+            conn.Open();
+            string sql = "DELETE FROM TodoItems WHERE Id = @id";
+            using SqlCommand cmd = new(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.ExecuteNonQuery();
+
+            return RedirectToAction("Index");
+        }
     }
 }
