@@ -1,0 +1,23 @@
+﻿@model TodoItem
+
+<div class="container mt-4">
+    <div class="card border-success shadow">
+        <div class="card-header bg-success text-white">
+            <h4>Create New Task</h4>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create">
+                <div class="mb-3">
+                    <label class="form-label">Title</label>
+                    <input asp-for="Title" class="form-control" placeholder="Enter task title" />
+                </div>
+                <div class="form-check mb-3">
+                    <input asp-for="IsCompleted" class="form-check-input" type="checkbox" />
+                    <label class="form-check-label">Completed?</label>
+                </div>
+                <button type="submit" class="btn btn-success">✅ Save</button>
+                <a asp-action="Index" class="btn btn-secondary">⬅️ Back</a>
+            </form>
+        </div>
+    </div>
+</div>
